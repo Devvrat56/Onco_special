@@ -74,22 +74,19 @@ const AuthForm = ({ onLogin }) => {
           </div>
         )}
 
-        <button type="submit" className="auth-button">
+        <button type="submit" className="auth-button" 
+          style={{ background: 'var(--primary-blue, #3b82f6)', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: '600', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', cursor: 'pointer', outline: 'none' }}>
           {isLogin ? <LogIn size={20} /> : <UserPlus size={20} />}
-          {isLogin ? 'Sign In' : 'Create Account'}
+          Submit
         </button>
       </form>
 
       <div className="divider">Or continue with</div>
 
-      <div className="social-group">
-        <button className="social-button">
+      <div className="social-group" style={{ display: 'flex', justifyContent: 'center' }}>
+        <button className="social-button" style={{ width: '100%' }}>
           <Chrome size={18} color="#4285F4" />
           Google
-        </button>
-        <button className="social-button">
-          <Github size={18} />
-          GitHub
         </button>
       </div>
 
