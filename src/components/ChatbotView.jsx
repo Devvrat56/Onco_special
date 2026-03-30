@@ -241,40 +241,9 @@ const ChatbotView = ({ addHistoryItem }) => {
           {messages.map((msg) => (
             <div key={msg.id} className={`message-wrapper ${msg.sender}`}>
               <div className="message-bubble" style={{ whiteSpace: 'pre-wrap', padding: '16px' }}>
-                {msg.text.split('###').map((part, i) => {
-                  if (!part.trim()) return null;
-                  const lines = part.trim().split('\n');
-                  if (lines.length === 0) return null;
-                  
-                  // If it's the first part and doesn't look like a category, just render it
-                  if (i === 0 && !msg.text.startsWith('###')) return <div key={i}>{part}</div>;
-                  
-                  const heading = lines[0].replace(':', '').trim();
-                  const content = lines.slice(1).join('\n').trim();
-                  
-                  return (
-                    <div key={i} className="clinical-category-card" style={{ 
-                      marginTop: i > 0 ? '16px' : '0',
-                      padding: '12px',
-                      background: 'rgba(255,255,255,0.05)',
-                      borderRadius: '8px',
-                      borderLeft: '4px solid var(--cobalt)',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                    }}>
-                      <strong style={{ 
-                        color: 'var(--cobalt)', 
-                        fontSize: '0.75rem', 
-                        textTransform: 'uppercase', 
-                        letterSpacing: '0.05rem',
-                        display: 'block',
-                        marginBottom: '4px'
-                      }}>
-                        {heading}
-                      </strong>
-                      <div style={{ fontSize: '0.95rem', lineHeight: '1.5', color: 'rgba(255,255,255,0.9)' }}>{content}</div>
-                    </div>
-                  );
-                })}
+                <div style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--text-main)' }}>
+                  {msg.text}
+                </div>
               </div>
               <span className="message-time">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>

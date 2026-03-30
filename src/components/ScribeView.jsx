@@ -110,7 +110,7 @@ const ScribeView = ({ addHistoryItem }) => {
       setIsSaved(false);
     } catch (error) {
       console.error("Audio Upload Error Trace:", error);
-      alert("AI Scribe Feature Error: " + error.message + ". Please ensure your audio file is under 25MB and is a valid format (mp3/wav/m4a).");
+      alert("AI Scribe Feature Error: " + error.message + ". Please ensure your audio file is under 25MB and is a valid audio format.");
       setIsTranscribing(false);
       setIsAnalyzing(false);
     } finally {
