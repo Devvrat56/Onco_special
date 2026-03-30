@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import { Mail, Lock, User, LogIn, UserPlus, Github, Chrome } from 'lucide-react';
 import Dashboard from './components/Dashboard';
@@ -108,7 +108,11 @@ const AuthForm = ({ onLogin }) => {
 };
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('carelinq_logged_in') === 'true');
+
+  useEffect(() => {
+    localStorage.setItem('carelinq_logged_in', isLoggedIn);
+  }, [isLoggedIn]);
 
   const handleLogin = () => {
     setIsLoggedIn(true);

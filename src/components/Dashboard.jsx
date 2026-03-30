@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MessageSquare, 
   Mic, 
@@ -19,7 +19,11 @@ import ReportView from './ReportView';
 import HistoryView from './HistoryView';
 
 const Dashboard = ({ onLogout }) => {
-  const [activeTab, setActiveTab] = useState('Overview');
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('carelinq_active_tab') || 'Overview');
+
+  useEffect(() => {
+    localStorage.setItem('carelinq_active_tab', activeTab);
+  }, [activeTab]);
   
   // -- Frontend Persistence Layer (States lifted for instant updates) --
   const [historyData, setHistoryData] = useState(() => {
