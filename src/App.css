@@ -868,6 +868,170 @@
 .empty-state-view h3 { font-size: 1.5rem; color: var(--text-main); margin-bottom: 8px; }
 
 /* Responsive adjustments */
+/* WebRTC Video Call Styles */
+.video-scribe-layout .scribe-main-grid {
+  transition: var(--transition);
+}
+
+.video-scribe-layout .scribe-main-grid.with-video {
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.video-call-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.5s ease-out forwards;
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.video-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+  position: relative;
+  height: 500px;
+}
+
+.video-container {
+  background: var(--cobalt);
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+}
+
+.remote-video-wrapper {
+  flex: 1;
+  height: 100%;
+}
+
+.remote-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+}
+
+.remote-placeholder .small-text {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-top: 8px;
+}
+
+.local-video-wrapper {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 140px;
+  height: 200px;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  z-index: 10;
+  transition: var(--transition);
+  border-radius: 16px;
+  background: #111;
+}
+
+.local-video-wrapper:hover {
+  transform: scale(1.05);
+  border-color: var(--primary-blue);
+}
+
+.local-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--transition);
+}
+
+.video-muted-blur {
+  filter: blur(10px) brightness(0.5);
+}
+
+.local-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+
+.video-off-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(255,255,255,0.8);
+}
+
+.local-video-controls {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.local-video-wrapper:hover .local-video-controls {
+  opacity: 1;
+}
+
+.circle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.circle-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.circle-btn.muted {
+  background: rgba(239, 68, 68, 0.8); /* Red for muted */
+  border-color: #ef4444;
+}
+
+.notes-column {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.notes-column.full-width {
+  grid-column: span 2;
+}
+
 @media (max-width: 1200px) {
   .dashboard-sidebar { width: 80px; padding: 32px 16px; align-items: center; }
   .sidebar-nav button span { margin-right: 0; }
@@ -876,4 +1040,5 @@
   .content-header { flex-direction: column; gap: 20px; }
   .content-grid { grid-template-columns: 1fr; }
   .pillar-grid { grid-template-columns: 1fr; }
+  .video-scribe-layout .scribe-main-grid.with-video { grid-template-columns: 1fr; }
 }
