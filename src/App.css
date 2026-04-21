@@ -646,8 +646,14 @@
   flex-direction: column;
 }
 
-.message-wrapper.bot { align-self: flex-start; }
-.message-wrapper.user { align-self: flex-end; }
+.message-wrapper.bot { 
+  align-self: flex-start; 
+  align-items: flex-start;
+}
+.message-wrapper.user { 
+  align-self: flex-end; 
+  align-items: flex-end;
+}
 
 .message-bubble {
   padding: 16px 20px;

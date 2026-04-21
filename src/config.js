@@ -1,6 +1,6 @@
 const config = {
-  // Always point to Production Railway Backend
-  API_BASE_URL: 'https://backendscriber-production.up.railway.app/api/v1',
+  // Point to Render Backend
+  API_BASE_URL: 'https://backend-scriber.onrender.com/api/v1',
 };
 
 export default config;

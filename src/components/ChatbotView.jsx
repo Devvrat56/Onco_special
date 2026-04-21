@@ -240,8 +240,8 @@ const ChatbotView = ({ addHistoryItem }) => {
         <div className="messages-container" style={{ flex: 1 }}>
           {messages.map((msg) => (
             <div key={msg.id} className={`message-wrapper ${msg.sender}`}>
-              <div className="message-bubble" style={{ whiteSpace: 'pre-wrap', padding: '16px' }}>
-                <div style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--text-main)' }}>
+              <div className="message-bubble" style={{ whiteSpace: 'pre-wrap' }}>
+                <div style={{ fontSize: '0.95rem', lineHeight: '1.6' }}>
                   {msg.text}
                 </div>
               </div>
