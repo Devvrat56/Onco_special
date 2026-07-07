@@ -1301,24 +1301,37 @@
 }
 
 .btn-history-toggle {
-  background: var(--white);
-  border: 1px solid var(--gray-200);
-  border-radius: 12px;
   padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   gap: 8px;
-  cursor: pointer;
   font-weight: 600;
   font-size: 0.9rem;
-  transition: var(--transition);
+  cursor: pointer;
   color: var(--text-main);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
-.btn-history-toggle:hover, .btn-history-toggle.active {
+.btn-history-toggle:hover {
   border-color: var(--primary-blue);
   color: var(--primary-blue);
-  background: var(--azure-mist);
+  background: var(--white);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -2px rgba(37, 99, 235, 0.08);
+}
+
+.btn-history-toggle.active {
+  border-color: var(--primary-blue);
+  color: white;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--vibrant-indigo) 100%);
+  box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.3);
+  transform: translateY(0);
 }
 
 .history-badge {
@@ -1329,7 +1342,14 @@
   padding: 2px 6px;
   border-radius: 10px;
   line-height: 1;
+  transition: all 0.3s ease;
 }
+
+.btn-history-toggle.active .history-badge {
+  background: white;
+  color: var(--primary-blue);
+}
+
 
 .user-profile {
   display: flex;
@@ -1494,9 +1514,11 @@
 }
 
 .btn-sync {
-  background: var(--white);
-  border: 1px solid var(--gray-200);
-  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  padding: 8px 14px;
   border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -1504,12 +1526,17 @@
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  transition: var(--transition);
+  color: var(--text-main);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.01);
 }
 
 .btn-sync:hover {
   border-color: var(--primary-blue);
   color: var(--primary-blue);
+  background: var(--white);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px -2px rgba(37, 99, 235, 0.08);
 }
 
 .drawer-list {
@@ -1758,4 +1785,213 @@
   border-color: rgba(16, 185, 129, 0.15);
   font-weight: 600;
 }
+
+/* Clinical SOAP Care Plan Beautiful Render System */
+.clinical-care-plan-rendered {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  margin: 16px 0;
+  text-align: left;
+}
+
+.clinical-card-section {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 18px;
+  padding: 24px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.01), 
+    0 2px 4px -1px rgba(0, 0, 0, 0.006);
+}
+
+.clinical-card-section:hover {
+  transform: translateY(-2px);
+  border-color: rgba(37, 99, 235, 0.25);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 
+    0 12px 20px -8px rgba(37, 99, 235, 0.06), 
+    0 4px 6px -2px rgba(37, 99, 235, 0.02);
+}
+
+.clinical-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  padding-bottom: 12px;
+}
+
+.section-icon-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  padding: 6px;
+  flex-shrink: 0;
+}
+
+/* Colors for specific SOAP card sections */
+.section-icon-pill.patient { background: rgba(37, 99, 235, 0.1); color: var(--primary-blue); }
+.section-icon-pill.subjective { background: rgba(37, 99, 235, 0.1); color: var(--primary-blue); }
+.section-icon-pill.complaint { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.section-icon-pill.history { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+.section-icon-pill.plan { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.section-icon-pill.assessment { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+.section-icon-pill.objective { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+.section-icon-pill.default { background: rgba(107, 114, 128, 0.1); color: #6b7280; }
+
+.clinical-card-title {
+  font-size: 1.05rem;
+  font-weight: 750;
+  color: var(--dark-blue);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.75px;
+}
+
+.clinical-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clinical-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  background: rgba(248, 250, 252, 0.65);
+  border-radius: 14px;
+  padding: 18px;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  width: 100%;
+}
+
+.clinical-grid-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.clinical-grid-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  font-weight: 750;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.clinical-grid-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.clinical-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 6px;
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+.clinical-list-bullet {
+  color: var(--primary-blue);
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.clinical-list-content {
+  color: var(--text-main);
+  flex: 1;
+  text-align: left;
+}
+
+.clinical-paragraph {
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: var(--text-main);
+  margin: 0 0 10px 0;
+  text-align: left;
+}
+
+.clinical-paragraph strong, 
+.clinical-list-content strong,
+.clinical-grid-value strong {
+  color: var(--dark-blue);
+  font-weight: 700;
+}
+
+/* Ensure the edit button does not conflict with clean hover states */
+.summary-click-to-edit:hover .clinical-card-section {
+  border-color: rgba(37, 99, 235, 0.35);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* Primary Action Blue & Saved Button Styles */
+.btn-primary-blue {
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--text-main);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.btn-primary-blue:hover {
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+  background: var(--white);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -2px rgba(37, 99, 235, 0.08);
+}
+
+.btn-primary-blue:active {
+  transform: translateY(0);
+}
+
+.btn-primary-blue:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-saved {
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 1px solid #10b981;
+  background: rgba(16, 185, 129, 0.08);
+  color: #10b981;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: not-allowed;
+  transition: all 0.3s ease;
+}
+
+
 

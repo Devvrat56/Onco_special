@@ -77,6 +77,188 @@ const getMockMedicalData = (filename = "") => {
   return { transcript, summary, entities };
 };
 
+const parseClinicalSummary = (text) => {
+  if (!text) return [];
+  
+  const lines = text.split('\n');
+  const sections = [];
+  let currentSection = {
+    title: '',
+    items: [],
+  };
+
+  const isHeading = (line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return false;
+    if (trimmed.startsWith('**') && trimmed.endsWith('**')) return true;
+    if (trimmed.startsWith('**') && trimmed.endsWith('**:')) return true;
+    if (/^[A-Z\s]{3,25}:$/.test(trimmed)) return true;
+    return false;
+  };
+
+  const cleanHeading = (line) => {
+    let clean = line.trim();
+    if (clean.startsWith('**')) clean = clean.substring(2);
+    if (clean.endsWith('**')) clean = clean.substring(0, clean.length - 2);
+    if (clean.endsWith('**:')) clean = clean.substring(0, clean.length - 3);
+    if (clean.endsWith(':')) clean = clean.substring(0, clean.length - 1);
+    return clean.trim();
+  };
+
+  for (let line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    if (isHeading(trimmed)) {
+      if (currentSection.title || currentSection.items.length > 0) {
+        sections.push(currentSection);
+      }
+      currentSection = {
+        title: cleanHeading(trimmed),
+        items: []
+      };
+    } else {
+      if (trimmed.startsWith('-') || trimmed.startsWith('*')) {
+        const content = trimmed.substring(1).trim();
+        const colonIndex = content.indexOf(':');
+        if (colonIndex > 0 && colonIndex < 25) {
+          const key = content.substring(0, colonIndex).trim();
+          const value = content.substring(colonIndex + 1).trim();
+          currentSection.items.push({
+            type: 'key-value',
+            key,
+            value
+          });
+        } else {
+          currentSection.items.push({
+            type: 'list-item',
+            content
+          });
+        }
+      } else {
+        currentSection.items.push({
+          type: 'paragraph',
+          content: trimmed
+        });
+      }
+    }
+  }
+
+  if (currentSection.title || currentSection.items.length > 0) {
+    sections.push(currentSection);
+  }
+
+  if (sections.length === 0 && text.trim()) {
+    sections.push({
+      title: 'Consultation Overview',
+      items: [{ type: 'paragraph', content: text.trim() }]
+    });
+  }
+
+  return sections;
+};
+
+const renderInlineBold = (text) => {
+  if (typeof text !== 'string') return text;
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+};
+
+const getSectionIcon = (title) => {
+  const t = title.toLowerCase();
+  if (t.includes('patient')) return <User size={16} className="section-icon-pill patient" />;
+  if (t.includes('complaint')) return <AlertTriangle size={16} className="section-icon-pill complaint" />;
+  if (t.includes('history')) return <History size={16} className="section-icon-pill history" />;
+  if (t.includes('plan')) return <CheckCircle2 size={16} className="section-icon-pill plan" />;
+  if (t.includes('assessment')) return <FileText size={16} className="section-icon-pill assessment" />;
+  if (t.includes('subjective')) return <User size={16} className="section-icon-pill subjective" />;
+  if (t.includes('objective')) return <FileText size={16} className="section-icon-pill objective" />;
+  return <FileText size={16} className="section-icon-pill default" />;
+};
+
+const renderSectionContent = (items) => {
+  const rendered = [];
+  let currentGrid = [];
+
+  const flushGrid = () => {
+    if (currentGrid.length > 0) {
+      rendered.push(
+        <div key={`grid-${rendered.length}`} className="clinical-grid">
+          {currentGrid.map((item, idx) => (
+            <div key={idx} className="clinical-grid-item">
+              <span className="clinical-grid-label">{renderInlineBold(item.key)}</span>
+              <span className="clinical-grid-value">{renderInlineBold(item.value)}</span>
+            </div>
+          ))}
+        </div>
+      );
+      currentGrid = [];
+    }
+  };
+
+  items.forEach((item, idx) => {
+    if (item.type === 'key-value') {
+      currentGrid.push(item);
+    } else {
+      flushGrid();
+      if (item.type === 'list-item') {
+        rendered.push(
+          <div key={idx} className="clinical-list-item">
+            <span className="clinical-list-bullet">✦</span>
+            <div className="clinical-list-content">{renderInlineBold(item.content)}</div>
+          </div>
+        );
+      } else {
+        rendered.push(
+          <p key={idx} className="clinical-paragraph">
+            {renderInlineBold(item.content)}
+          </p>
+        );
+      }
+    }
+  });
+
+  flushGrid();
+  return rendered;
+};
+
+const renderClinicalSummaryHTML = (text) => {
+  const sections = parseClinicalSummary(text);
+  
+  return (
+    <div className="clinical-care-plan-rendered animate-fade-in">
+      {sections.map((section, sIdx) => (
+        <div key={sIdx} className={`clinical-card-section ${section.title.toLowerCase().replace(/\s+/g, '-')}`}>
+          {section.title && (
+            <div className="clinical-card-header">
+              {getSectionIcon(section.title)}
+              <h4 className="clinical-card-title">{section.title}</h4>
+            </div>
+          )}
+          <div className="clinical-card-body">
+            {renderSectionContent(section.items)}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const stripMarkdown = (text) => {
+  if (!text) return "";
+  return text
+    .replace(/\*\*/g, "")
+    .replace(/^-\s*/gm, "")
+    .replace(/^\*\s*/gm, "")
+    .replace(/\n+/g, " ")
+    .trim();
+};
+
 const ScribeView = ({ onLogout }) => {
   // Scribe State
   const [isRecording, setIsRecording] = useState(false);
@@ -792,9 +974,13 @@ const ScribeView = ({ onLogout }) => {
                               setActiveSummaryDraft(soapNotes?.summary || "");
                             }}
                           >
-                            <p style={{ fontSize: '1.05rem', lineHeight: '1.7', color: 'var(--text-main)', whiteSpace: 'pre-wrap', margin: 0 }}>
-                              {soapNotes?.summary || "Your clinical summary is being constructed."}
-                            </p>
+                            {soapNotes?.summary ? (
+                              renderClinicalSummaryHTML(soapNotes.summary)
+                            ) : (
+                              <p style={{ fontSize: '1.05rem', lineHeight: '1.7', color: 'var(--text-main)', margin: 0 }}>
+                                Your clinical summary is being constructed.
+                              </p>
+                            )}
                           </div>
                         )}
                       </div>
@@ -893,7 +1079,11 @@ const ScribeView = ({ onLogout }) => {
                     </button>
                   </div>
                   <div className="item-body">
-                    <p className="item-summary">{item.summary.length > 100 ? item.summary.slice(0, 100) + '...' : item.summary}</p>
+                    <p className="item-summary">
+                      {stripMarkdown(item.summary).length > 100 
+                        ? stripMarkdown(item.summary).slice(0, 100) + '...' 
+                        : stripMarkdown(item.summary)}
+                    </p>
                   </div>
                   <button className="btn-item-full" onClick={() => setSelectedRecord(item)}>
                     View Full SOAP Notes
@@ -978,9 +1168,13 @@ const ScribeView = ({ onLogout }) => {
                           setHistorySummaryDraft(selectedRecord.summary || "");
                         }}
                       >
-                        <p className="care-plan-render" style={{ whiteSpace: 'pre-wrap', margin: 0 }}>
-                          {selectedRecord.summary}
-                        </p>
+                        {selectedRecord.summary ? (
+                          renderClinicalSummaryHTML(selectedRecord.summary)
+                        ) : (
+                          <p className="care-plan-render" style={{ margin: 0 }}>
+                            No summary details.
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
