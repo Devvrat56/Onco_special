@@ -259,6 +259,23 @@ const stripMarkdown = (text) => {
     .trim();
 };
 
+const fetchWithTimeout = async (resource, options = {}) => {
+  const { timeout = 12000 } = options;
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(resource, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
+};
+
 const ScribeView = ({ onLogout }) => {
   // Scribe State
   const [isRecording, setIsRecording] = useState(false);
@@ -502,7 +519,7 @@ const ScribeView = ({ onLogout }) => {
     }
 
     try {
-      const response = await fetch(`${config.API_BASE_URL}/scribe/analyze`, {
+      const response = await fetchWithTimeout(`${config.API_BASE_URL}/scribe/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transcript: liveTranscription || "Patient consultation ended without speech." }),
@@ -545,7 +562,7 @@ const ScribeView = ({ onLogout }) => {
     let transData = null;
 
     try {
-      const transResponse = await fetch(`${config.API_BASE_URL}/scribe/transcribe`, {
+      const transResponse = await fetchWithTimeout(`${config.API_BASE_URL}/scribe/transcribe`, {
         method: 'POST',
         body: formData,
       });
@@ -563,7 +580,7 @@ const ScribeView = ({ onLogout }) => {
     
     setIsAnalyzing(true);
     try {
-      const analyzeResponse = await fetch(`${config.API_BASE_URL}/scribe/analyze`, {
+      const analyzeResponse = await fetchWithTimeout(`${config.API_BASE_URL}/scribe/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transcript: transData.transcript }),
@@ -638,7 +655,7 @@ const ScribeView = ({ onLogout }) => {
   const syncHistoryRecords = async () => {
     setIsHistorySyncing(true);
     try {
-      const response = await fetch(`${config.API_BASE_URL}/history/all`);
+      const response = await fetchWithTimeout(`${config.API_BASE_URL}/history/all`);
       if (!response.ok) throw new Error("Failed to fetch history");
       const data = await response.json();
       setHistoryData(data);
@@ -663,7 +680,7 @@ const ScribeView = ({ onLogout }) => {
 
   const handleDownloadPDF = async (record) => {
     try {
-      const response = await fetch(`${config.API_BASE_URL}/scribe/generate-pdf`, {
+      const response = await fetchWithTimeout(`${config.API_BASE_URL}/scribe/generate-pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
