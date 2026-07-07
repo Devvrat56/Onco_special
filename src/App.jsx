@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { Mail, Lock, User, LogIn, UserPlus, Github, Chrome } from 'lucide-react';
-import Dashboard from './components/Dashboard';
+import ScribeView from './components/ScribeView';
 
 const AuthForm = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -131,7 +131,7 @@ function App() {
       </div>
       
       {isLoggedIn ? (
-        <Dashboard onLogout={handleLogout} />
+        <ScribeView onLogout={handleLogout} />
       ) : (
         <div className="auth-container">
           <AuthForm onLogin={handleLogin} />
