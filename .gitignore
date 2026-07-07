@@ -1,5 +1,11 @@
 node_modules/
 dist/
+.env
+.env.local
+.env.*.local
+/.cache
+.DS_Storenode_modules/
+dist/
 build/
 .env
 carelinq.db
