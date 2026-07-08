@@ -191,6 +191,7 @@ const renderInlineBold = (text) => {
 
 const getSectionIcon = (title) => {
   const t = title.toLowerCase();
+  if (t.includes('medic') || t.includes('treatment') || t.includes('guide')) return <AlertTriangle size={16} className="section-icon-pill plan" />;
   if (t.includes('patient')) return <User size={16} className="section-icon-pill patient" />;
   if (t.includes('complaint')) return <AlertTriangle size={16} className="section-icon-pill complaint" />;
   if (t.includes('history')) return <History size={16} className="section-icon-pill history" />;
