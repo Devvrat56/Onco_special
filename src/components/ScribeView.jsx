@@ -8,74 +8,94 @@ import {
 import config from '../config';
 import Peer from 'peerjs';
 
-const getMockMedicalData = (filename = "") => {
-  // If the filename contains "Preeti Gupta" or similar, use a specialized mock script
-  const isPreeti = filename.toLowerCase().includes("preeti") || filename.toLowerCase().includes("gupta") || filename.toLowerCase().includes("meeting");
-  
-  let transcript = "";
-  let summary = "";
-  let entities = [];
+const getTranscriptFromSegments = (segments = []) => {
+  if (!Array.isArray(segments)) return "";
+  return segments
+    .map((segment) => {
+      if (typeof segment === 'string') return segment;
+      const speaker = segment.speaker || segment.role || segment.label;
+      const text = segment.text || segment.transcript || segment.content || "";
+      return speaker ? `${speaker}: ${text}` : text;
+    })
+    .filter(Boolean)
+    .join('\n');
+};
 
-  if (isPreeti) {
-    transcript = "Doctor: Good afternoon, Preeti. How are you feeling today after your third cycle of chemotherapy?\n" +
-      "Patient: Hello doctor. I've been feeling okay, but I started experiencing mild neuropathy in my fingers and persistent fatigue over the last few days.\n" +
-      "Doctor: I see. Neuropathy is a common side effect of Paclitaxel chemotherapy. Let's record your vitals. BP is 128/82, heart rate is 76 bpm, temperature is 98.6. We will monitor the neuropathy closely. I'll prescribe Gabapentin 300mg daily to manage the nerve symptoms, and let's schedule your next cycle in two weeks.";
-    
-    summary = "CLINICAL SOAP PLAN\n\n" +
-      "SUBJECTIVE:\n" +
-      "- Patient Preeti Gupta presents for follow-up after chemotherapy cycle 3.\n" +
-      "- Complains of mild neuropathy in fingers and fatigue over the past few days.\n\n" +
-      "OBJECTIVE:\n" +
-      "- Blood Pressure: 128/82 mmHg\n" +
-      "- Heart Rate: 76 bpm\n" +
-      "- Temperature: 98.6 F\n\n" +
-      "ASSESSMENT:\n" +
-      "- Chemotherapy-induced peripheral neuropathy (secondary to Paclitaxel).\n" +
-      "- Cancer treatment-related fatigue.\n\n" +
-      "PLAN:\n" +
-      "- Prescribed Gabapentin 300mg orally once daily for neuropathic pain.\n" +
-      "- Schedule follow-up and next chemo cycle in 2 weeks.\n" +
-      "- Monitor neuropathy and report worsening symptoms immediately.";
-      
-    entities = [
-      { text: "Preeti Gupta", label: "PATIENT_NAME" },
-      { text: "neuropathy", label: "SYMPTOM" },
-      { text: "fatigue", label: "SYMPTOM" },
-      { text: "Paclitaxel", label: "CHEMOTHERAPY_DRUG" },
-      { text: "Gabapentin 300mg", label: "MEDICATION" },
-      { text: "128/82", label: "VITALS_BP" }
-    ];
-  } else {
-    transcript = "Doctor: Good morning. Let's review your symptoms. How have you been feeling?\n" +
-      "Patient: I have had a dry cough for the last week and some mild chest tightness, but no fever.\n" +
-      "Doctor: Okay. Your lungs sound clear on auscultation. Vitals are stable: BP 120/80, temp 98.4 F, O2 sat 98%. We'll start you on Albuterol inhaler as needed for chest tightness and check back in a week.";
-      
-    summary = "CLINICAL SOAP PLAN\n\n" +
-      "SUBJECTIVE:\n" +
-      "- Patient reports dry cough for 1 week and mild chest tightness.\n" +
-      "- Denies fever or shortness of breath.\n\n" +
-      "OBJECTIVE:\n" +
-      "- Lungs: Clear to auscultation bilaterally.\n" +
-      "- BP: 120/80 mmHg\n" +
-      "- Temp: 98.4 F\n" +
-      "- O2 Saturation: 98% on room air.\n\n" +
-      "ASSESSMENT:\n" +
-      "- Acute bronchitis vs mild asthma exacerbation.\n\n" +
-      "PLAN:\n" +
-      "- Albuterol HFA inhaler: 2 puffs every 4-6 hours as needed for cough/tightness.\n" +
-      "- Follow up in 7 days or sooner if symptoms worsen.";
-      
-    entities = [
-      { text: "cough", label: "SYMPTOM" },
-      { text: "chest tightness", label: "SYMPTOM" },
-      { text: "clear", label: "AUSCULTATION" },
-      { text: "120/80", label: "VITALS_BP" },
-      { text: "Albuterol inhaler", label: "MEDICATION" }
-    ];
+const extractTranscript = (data) => {
+  if (!data) return "";
+  if (typeof data === 'string') return data;
+  if (data.data && typeof data.data === 'object') {
+    const nestedTranscript = extractTranscript(data.data);
+    if (nestedTranscript) return nestedTranscript;
+  }
+  if (data.result && typeof data.result === 'object') {
+    const nestedTranscript = extractTranscript(data.result);
+    if (nestedTranscript) return nestedTranscript;
   }
 
-  return { transcript, summary, entities };
+  const directTranscript =
+    data.transcript ||
+    data.full_transcript ||
+    data.transcription ||
+    data.text ||
+    data.output_text ||
+    data.result;
+
+  if (typeof directTranscript === 'string' && directTranscript.trim()) {
+    return directTranscript.trim();
+  }
+
+  const segmentedTranscript =
+    getTranscriptFromSegments(data.segments) ||
+    getTranscriptFromSegments(data.whisper_segments) ||
+    getTranscriptFromSegments(data.diarization_segments);
+
+  return segmentedTranscript.trim();
 };
+
+const extractSummary = (data) => {
+  if (!data) return "";
+  if (typeof data === 'string') return data;
+  if (data.data && typeof data.data === 'object') {
+    const nestedSummary = extractSummary(data.data);
+    if (nestedSummary) return nestedSummary;
+  }
+  if (data.result && typeof data.result === 'object') {
+    const nestedSummary = extractSummary(data.result);
+    if (nestedSummary) return nestedSummary;
+  }
+
+  return (
+    data.summary ||
+    data.detailed_summary ||
+    data.medical_summary ||
+    data.clinical_summary ||
+    data.soap_summary ||
+    data.soap_notes ||
+    data.soap_note ||
+    data.analysis ||
+    data.result ||
+    ""
+  );
+};
+
+const normalizeAnalysisData = (data, transcript) => ({
+  ...data,
+  transcript: extractTranscript(data) || transcript,
+  summary: extractSummary(data),
+  entities: Array.isArray(data?.entities) ? data.entities : (Array.isArray(data?.data?.entities) ? data.data.entities : [])
+});
+
+const buildDetailedAnalysisPayload = (transcript, extra = {}) => ({
+  transcript,
+  detail_level: "full",
+  summary_type: "detailed_medical_soap",
+  include_full_transcript: true,
+  include_entities: true,
+  instructions:
+    "Use the complete transcript. Create a detailed clinical medical summary with all relevant details. Include SUBJECTIVE, OBJECTIVE, ASSESSMENT, PLAN, medications, vitals, symptoms, history, red flags, follow-up, and patient instructions where present. Do not shorten or replace the transcript.",
+  ...extra
+});
 
 const parseClinicalSummary = (text) => {
   if (!text) return [];
@@ -286,6 +306,7 @@ const ScribeView = ({ onLogout }) => {
   const [soapNotes, setSoapNotes] = useState(null);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [scribeError, setScribeError] = useState("");
   const fileInputRef = useRef(null);
 
   // Human-in-the-loop editing states
@@ -469,6 +490,7 @@ const ScribeView = ({ onLogout }) => {
     setSessionTime(0);
     setSoapNotes(null);
     setIsSaved(false);
+    setScribeError("");
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -492,54 +514,42 @@ const ScribeView = ({ onLogout }) => {
       recognition.start();
       recognitionRef.current = recognition;
     } else {
-      console.warn("Speech Recognition API not supported in this browser. Falling back to mock.");
-      let mockInterval = setInterval(() => {
-        const phrases = [
-          "Patient reports mild chest pain.",
-          " Blood pressure slightly elevated at 135/85.",
-          " Suggesting a follow-up appointment in two weeks.",
-          " Recommending standard lipid profile checks."
-        ];
-        setLiveTranscription(prev => prev + " " + phrases[Math.floor(Math.random() * phrases.length)]);
-      }, 3000);
-      recognitionRef.current = { mockInterval, stop: () => clearInterval(mockInterval) };
+      setScribeError("Live browser transcription is not supported in this browser. Upload a recorded audio file for full backend transcription.");
+      recognitionRef.current = null;
     }
   };
 
   const handleStopRecording = async () => {
     setIsRecording(false);
     setIsAnalyzing(true);
+    setScribeError("");
     
     if (recognitionRef.current) {
       if (typeof recognitionRef.current.stop === 'function') {
          try { recognitionRef.current.stop(); } catch(e) {}
-      } else if (recognitionRef.current.mockInterval) {
-         clearInterval(recognitionRef.current.mockInterval);
       }
     }
 
     try {
+      const finalTranscript = liveTranscription.trim() || "Patient consultation ended without speech.";
       const response = await fetchWithTimeout(`${config.API_BASE_URL}/scribe/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript: liveTranscription || "Patient consultation ended without speech." }),
+        body: JSON.stringify(buildDetailedAnalysisPayload(finalTranscript)),
+        timeout: 120000,
       });
 
-      if (!response.ok) throw new Error('Analysis failed');
+      if (!response.ok) throw new Error(`Analysis failed (${response.status})`);
 
       const data = await response.json();
-      setSoapNotes(data);
+      setSoapNotes(normalizeAnalysisData(data, finalTranscript));
       setHasNotes(true);
       setIsSaved(false);
     } catch (error) {
-      console.warn("Analysis API failed. Falling back to local clinical mock analysis...", error);
-      const mockData = getMockMedicalData("");
-      setSoapNotes({
-        transcript: liveTranscription || "Patient consultation ended without speech.",
-        summary: mockData.summary,
-        entities: mockData.entities
-      });
-      setHasNotes(true);
+      console.error("Analysis API failed.", error);
+      setScribeError("Clinical analysis failed. Please check the backend and try again; demo notes are no longer substituted for failed production results.");
+      setSoapNotes(null);
+      setHasNotes(false);
       setIsSaved(false);
     } finally {
       setIsAnalyzing(false);
@@ -554,6 +564,7 @@ const ScribeView = ({ onLogout }) => {
     setLiveTranscription("");
     setSoapNotes(null);
     setIsSaved(false);
+    setScribeError("");
     setIsTranscribing(true);
 
     const formData = new FormData();
@@ -565,17 +576,26 @@ const ScribeView = ({ onLogout }) => {
       const transResponse = await fetchWithTimeout(`${config.API_BASE_URL}/scribe/transcribe`, {
         method: 'POST',
         body: formData,
+        timeout: 300000,
       });
 
-      if (!transResponse.ok) throw new Error('Transcription failed');
+      if (!transResponse.ok) throw new Error(`Transcription failed (${transResponse.status})`);
       transData = await transResponse.json();
     } catch (error) {
-      console.warn("Transcription API failed. Falling back to local clinical mock engine...", error);
-      const mockData = getMockMedicalData(file.name);
-      transData = { transcript: mockData.transcript };
+      console.error("Transcription API failed.", error);
+      setScribeError("Full audio transcription failed. Please check the backend logs/CORS and retry the upload.");
+      setIsTranscribing(false);
+      return;
     }
 
-    setLiveTranscription(transData.transcript);
+    const fullTranscript = extractTranscript(transData);
+    if (!fullTranscript) {
+      setScribeError("The backend response did not include a transcript. Expected transcript, full_transcript, transcription, text, or segment text.");
+      setIsTranscribing(false);
+      return;
+    }
+
+    setLiveTranscription(fullTranscript);
     setIsTranscribing(false);
     
     setIsAnalyzing(true);
@@ -583,27 +603,23 @@ const ScribeView = ({ onLogout }) => {
       const analyzeResponse = await fetchWithTimeout(`${config.API_BASE_URL}/scribe/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          transcript: transData.transcript,
+        body: JSON.stringify(buildDetailedAnalysisPayload(fullTranscript, {
           whisper_segments: transData.whisper_segments || null,
           diarization_segments: transData.diarization_segments || null
-        }),
+        })),
+        timeout: 120000,
       });
 
-      if (!analyzeResponse.ok) throw new Error('Analysis failed');
+      if (!analyzeResponse.ok) throw new Error(`Analysis failed (${analyzeResponse.status})`);
       const analyzeData = await analyzeResponse.json();
-      setSoapNotes(analyzeData);
+      setSoapNotes(normalizeAnalysisData(analyzeData, fullTranscript));
       setHasNotes(true);
       setIsSaved(false);
     } catch (error) {
-      console.warn("Analysis API failed. Falling back to local clinical mock analysis...", error);
-      const mockData = getMockMedicalData(file.name);
-      setSoapNotes({
-        transcript: transData.transcript,
-        summary: mockData.summary,
-        entities: mockData.entities
-      });
-      setHasNotes(true);
+      console.error("Analysis API failed.", error);
+      setScribeError("Detailed medical summary failed. The full transcript is shown above, but the backend did not return SOAP analysis.");
+      setSoapNotes(null);
+      setHasNotes(false);
       setIsSaved(false);
     } finally {
       setIsAnalyzing(false);
@@ -918,6 +934,12 @@ const ScribeView = ({ onLogout }) => {
                     </div>
                   )}
                 </div>
+                {scribeError && (
+                  <div className="scribe-error-banner">
+                    <AlertTriangle size={18} />
+                    <span>{scribeError}</span>
+                  </div>
+                )}
               </section>
 
               {/* SOAP Documentation Panel */}
@@ -1006,6 +1028,15 @@ const ScribeView = ({ onLogout }) => {
                         )}
                       </div>
                       
+                      {(soapNotes?.transcript || liveTranscription) && (
+                        <div className="soap-section full-transcript-section">
+                          <label>Full Consultation Transcript</label>
+                          <div className="transcript-box transcript-box-active">
+                            {soapNotes?.transcript || liveTranscription}
+                          </div>
+                        </div>
+                      )}
+
                       {soapNotes?.entities && soapNotes.entities.length > 0 && (
                         <div className="soap-section entities-highlight">
                           <label>Identified Medical Entities & Classifications</label>
