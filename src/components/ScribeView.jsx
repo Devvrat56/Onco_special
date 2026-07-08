@@ -583,7 +583,11 @@ const ScribeView = ({ onLogout }) => {
       const analyzeResponse = await fetchWithTimeout(`${config.API_BASE_URL}/scribe/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript: transData.transcript }),
+        body: JSON.stringify({ 
+          transcript: transData.transcript,
+          whisper_segments: transData.whisper_segments || null,
+          diarization_segments: transData.diarization_segments || null
+        }),
       });
 
       if (!analyzeResponse.ok) throw new Error('Analysis failed');
